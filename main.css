@@ -68,6 +68,17 @@ input {
   padding: 10px;
 }
 
+.game-fule{
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.game-fule > p{
+  color: #4caf50;
+  font-size: 24px;
+}
+
 .game--board {
   flex: 1;
   display: flex;

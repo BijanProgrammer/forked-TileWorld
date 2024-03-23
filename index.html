@@ -12,15 +12,20 @@
     <main class="main">
       <div class="game">
         <div>
+          <div class="game-fule">
+            <p>remaining fule:</p>
+            <p id="fule">30</p>
+          </div>
           <form>
+            <label for="ffule">start fule:</label><br />
+            <input type="number" name="bsize" value="30" /><br /><br />
             <label for="fsize">size:</label><br />
             <input type="number" name="bsize" value="5" /><br /><br />
             <label for="bcount">balls count:</label><br />
             <input type="number" name="bcount" value="5" /><br /><br />
-            
           </form>
           <button onclick="readyGame()">ready</button>
-            <button onclick="() => {}">run</button>
+          <button onclick="runGame()">run</button>
         </div>
 
         <div id="board" class="game--board"></div>

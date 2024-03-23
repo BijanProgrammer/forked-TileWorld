@@ -1,28 +1,52 @@
 const BOARD_SIZE_PX = 770;
 let BOARD_SIZE_CELL = 0;
 
+let AGENT = "";
+let BALLS = "";
+let HOLES = "";
+let GAME_BOARD = [];
+
+const DISISIONS = {
+  pickUp: "pickup",
+  putDown: "putDown",
+  right: "right",
+  left: "left",
+  top: "top",
+  down: "down",
+};
+
 function readyGame() {
   const board = document.getElementById("board");
   board.innerHTML = "";
 
   const form = document.forms[0];
-  BOARD_SIZE_CELL = Number(form[0].value);
-  const ballsCount = Number(form[1].value);
+  const startFule = Number(form[0].value);
+  BOARD_SIZE_CELL = Number(form[1].value);
+  const ballsCount = Number(form[2].value);
 
   const balls = [];
   const holes = [];
+
   const randomNumbers = generateRandomNumbers(
     2 * ballsCount,
     1,
     BOARD_SIZE_CELL * BOARD_SIZE_CELL
   );
+  const agentCellNumber = generateRandomNumbers(
+    1,
+    1,
+    BOARD_SIZE_CELL * BOARD_SIZE_CELL
+  );
+  const agent = new Agent(agentCellNumber[0], startFule);
+  board.appendChild(agent.generateElement());
+
   for (let i = 0; i < ballsCount; i++) {
     balls[i] = new Ball(randomNumbers[i]);
-    board.appendChild(balls[i].getElement());
+    board.appendChild(balls[i].generateElement());
   }
   for (let i = 0; i < ballsCount; i++) {
     holes[i] = new Hole(randomNumbers[i + ballsCount]);
-    board.appendChild(holes[i ].getElement());
+    board.appendChild(holes[i].generateElement());
   }
 
   for (let i = 0; i < BOARD_SIZE_CELL; i++) {
@@ -33,19 +57,37 @@ function readyGame() {
       board.appendChild(child);
     }
   }
+
+  for (let i = 0; i < BOARD_SIZE_CELL; i++) {
+    for (let j = 0; j < BOARD_SIZE_CELL; j++) {
+      const array = [];
+    }
+  }
+
+  AGENT = agent;
+  BALLS = balls;
+  HOLES = holes;
 }
 
-class Ball {
-  SIZE_RATIO = 4;
+function runGame() {
+  AGENT.start();
+}
+
+class Element {
+  SIZE_RATIO = 1;
+  cellNumber = 0;
+  row = 0;
+  column = 0;
+  ballElement = null;
 
   constructor(cellNumber) {
     this.cellNumber = cellNumber;
-    this.row = Math.floor(cellNumber / BOARD_SIZE_CELL) + 1;
-    this.column = cellNumber - (this.row - 1) * BOARD_SIZE_CELL;
+    this.row = Math.floor(cellNumber / BOARD_SIZE_CELL);
+    this.column = cellNumber - this.row * BOARD_SIZE_CELL - 1;
 
-    if (this.column === 0) {
+    if (this.column === -1) {
       this.row = this.row - 1;
-      this.column = BOARD_SIZE_CELL;
+      this.column = BOARD_SIZE_CELL - 1;
     }
   }
 
@@ -60,62 +102,308 @@ class Ball {
     element.style.position = "absolute";
     element.style.width = cellSize / this.SIZE_RATIO + "px";
     element.style.height = cellSize / this.SIZE_RATIO + "px";
-    element.style.borderRadius = "999px";
     element.style.top =
-      this.row * cellSize -
+      (this.row + 1) * cellSize -
       (cellSize / 2 + cellSize / (this.SIZE_RATIO * 2)) +
       "px";
     element.style.left =
-      this.column * cellSize -
+      (this.column + 1) * cellSize -
       (cellSize / 2 + cellSize / (this.SIZE_RATIO * 2)) +
       "px";
-    element.style.backgroundColor = "#4caf50";
+
+    this.ballElement = element;
 
     return element;
   }
 }
 
-class Hole {
-  SIZE_RATIO = 1.5;
+class Ball extends Element {
+  isArrived = false;
 
   constructor(cellNumber) {
-    this.cellNumber = cellNumber;
-    this.row = Math.floor(cellNumber / BOARD_SIZE_CELL) + 1;
-    this.column = cellNumber - (this.row - 1) * BOARD_SIZE_CELL;
+    super(cellNumber);
+    this.SIZE_RATIO = 4;
+  }
 
-    if (this.column === 0) {
+  move(direction) {
+    const cellSize = BOARD_SIZE_PX / BOARD_SIZE_CELL;
+    const postionFromTop = Number(this.ballElement.style.top.slice(0, -2));
+    const postionFromLeft = Number(this.ballElement.style.left.slice(0, -2));
+    if (direction === DISISIONS.top) {
+      this.ballElement.style.top = postionFromTop - (cellSize - 2) + "px";
       this.row = this.row - 1;
-      this.column = BOARD_SIZE_CELL;
+    }
+    if (direction === DISISIONS.right) {
+      this.ballElement.style.left = postionFromLeft + (cellSize - 2) + "px";
+      this.row = this.column + 1;
+    }
+    if (direction === DISISIONS.left) {
+      this.ballElement.style.left = postionFromLeft - (cellSize - 2) + "px";
+      this.row = this.column - 1;
+    }
+    if (direction === DISISIONS.down) {
+      this.ballElement.style.top = postionFromTop + (cellSize - 2) + "px";
+      this.row = this.row + 1;
     }
   }
 
-  get rowCol() {
-    return [this.row, this.column];
+  generateElement() {
+    const element = this.getElement();
+
+    element.style.borderRadius = "999px";
+    element.style.backgroundColor = "#4caf50";
+    element.style.transition = "all 300ms linear";
+
+    return element;
+  }
+}
+
+class Hole extends Element {
+  isFill = false;
+
+  constructor(cellNumber) {
+    super(cellNumber);
+    this.SIZE_RATIO = 1.5;
   }
 
-  getElement() {
-    const element = document.createElement("div");
-    const cellSize = BOARD_SIZE_PX / BOARD_SIZE_CELL;
+  fill() {
+    this.isFill = true;
+  }
 
-    element.style.position = "absolute";
-    element.style.width = cellSize / this.SIZE_RATIO + "px";
-    element.style.height = cellSize / this.SIZE_RATIO + "px";
+  generateElement() {
+    const element = this.getElement();
+
     element.style.borderRadius = "4px";
-    element.style.top =
-      this.row * cellSize -
-      (cellSize / 2 + cellSize / (this.SIZE_RATIO * 2)) +
-      "px";
-    element.style.left =
-      this.column * cellSize -
-      (cellSize / 2 + cellSize / (this.SIZE_RATIO * 2)) +
-      "px";
     element.style.border = "2px solid red";
 
     return element;
   }
 }
 
-class Agent {}
+class Agent extends Element {
+  direction = DISISIONS.top;
+  fule = 30;
+  agentElement = null;
+  pickedElement = null;
+  currentLocation = [-1, -1]
+
+  constructor(cellNumber, fule) {
+    super(cellNumber);
+    this.SIZE_RATIO = 1.5;
+    this.fule = fule
+    document.getElementById("fule").innerText = this.fule
+  }
+
+  searchAround() {
+    const closeBalls = BALLS.filter((item) => {
+      const location = item.rowCol;
+
+      return (
+        location[0] <= this.row + 1 &&
+        location[0] >= this.row - 1 &&
+        location[1] <= this.column + 1 &&
+        location[1] >= this.column - 1 &&
+        !item.isArrived
+      );
+    });
+
+    const closeHolls = HOLES.filter((item) => {
+      const location = item.rowCol;
+
+      return (
+        location[0] <= this.row + 1 &&
+        location[0] >= this.row - 1 &&
+        location[1] <= this.column + 1 &&
+        location[1] >= this.column - 1 &&
+        !item.isFill
+      );
+    });
+
+    return { closeBalls: closeBalls, closeHolls: closeHolls };
+  }
+
+  chooseGoal(closeBalls, closeHolls) {
+    let goalElement = null;
+    let goalLocation = null;
+    let minimumDistance = BOARD_SIZE_CELL * BOARD_SIZE_CELL;
+
+    if (this.pickedElement === null) {
+      closeBalls.map((item) => {
+        const itemLocation = item.rowCol;
+        const manhatanDistance =
+          Math.abs(itemLocation[0] - this.row) +
+          Math.abs(itemLocation[1] - this.column);
+
+        if (manhatanDistance < minimumDistance) {
+          goalElement = item;
+          goalLocation = itemLocation;
+          minimumDistance = manhatanDistance;
+        }
+      });
+    } else {
+      closeHolls.map((item) => {
+        const itemLocation = item.rowCol;
+        const manhatanDistance =
+          Math.abs(itemLocation[0] - this.row) +
+          Math.abs(itemLocation[1] - this.column);
+
+        if (manhatanDistance < minimumDistance) {
+          goalElement = item;
+          goalLocation = itemLocation;
+          minimumDistance = manhatanDistance;
+        }
+      });
+    }
+
+    if (goalLocation === null) {
+      const directions = [
+        [this.row + 1, this.column],
+        [this.row, this.column + 1],
+        [this.row - 1, this.column],
+        [this.row, this.column - 1],
+      ].filter(
+        (item) =>
+          item[0] >= 0 &&
+          item[0] < BOARD_SIZE_CELL &&
+          item[1] >= 0 &&
+          item[1] < BOARD_SIZE_CELL 
+      );
+
+      let randomLocation = [this.currentLocation[0], this.currentLocation[1]]
+      while (randomLocation[0] === this.currentLocation[0] && randomLocation[1] === this.currentLocation[1]){
+        randomLocation = directions[Math.floor(Math.random() * directions.length)];
+      }
+        
+      goalLocation = randomLocation;
+    }
+
+    return { goalLocation: goalLocation, goalElement: goalElement };
+  }
+
+  makeDicision(goalLocation) {
+    if (goalLocation[0] === this.row && goalLocation[1] === this.column) {
+      if (this.pickedElement === null) {
+        return DISISIONS.pickUp;
+      } else {
+        return DISISIONS.putDown;
+      }
+    } else {
+      if (goalLocation[0] < this.row) {
+        return DISISIONS.top;
+      } else if (goalLocation[0] > this.row) {
+        return DISISIONS.down;
+      } else if (goalLocation[1] > this.column) {
+        return DISISIONS.right;
+      } else {
+        return DISISIONS.left;
+      }
+    }
+  }
+
+  pickUp(goalElement) {
+    this.pickedElement = goalElement;
+  }
+
+  putDown(goalElement) {
+    this.pickedElement.isArrived = true;
+    goalElement.isFill = true;
+    this.pickedElement = null;
+  }
+
+  turn(direction) {
+    if (direction === DISISIONS.top) {
+      this.agentElement.style.transform = "rotate(0deg)";
+    }
+    if (direction === DISISIONS.right) {
+      this.agentElement.style.transform = "rotate(90deg)";
+    }
+    if (direction === DISISIONS.left) {
+      this.agentElement.style.transform = "rotate(270deg)";
+    }
+    if (direction === DISISIONS.down) {
+      this.agentElement.style.transform = "rotate(180deg)";
+    }
+
+    this.direction = direction;
+  }
+
+  goForward() {
+    const cellSize = BOARD_SIZE_PX / BOARD_SIZE_CELL;
+    const postionFromTop = Number(this.agentElement.style.top.slice(0, -2));
+    const postionFromLeft = Number(this.agentElement.style.left.slice(0, -2));
+  this.currentLocation = [this.row, this.column]
+    if (this.direction === DISISIONS.top) {
+      this.agentElement.style.top = postionFromTop - (cellSize - 2) + "px";
+      this.row = this.row - 1;
+    }
+    if (this.direction === DISISIONS.right) {
+      this.agentElement.style.left = postionFromLeft + (cellSize - 2) + "px";
+      this.column = this.column + 1;
+    }
+    if (this.direction === DISISIONS.left) {
+      this.agentElement.style.left = postionFromLeft - (cellSize - 2) + "px";
+      this.column = this.column - 1;
+    }
+    if (this.direction === DISISIONS.down) {
+      this.agentElement.style.top = postionFromTop + (cellSize - 2) + "px";
+      this.row = this.row + 1;
+    }
+
+    if (this.pickedElement) this.pickedElement.move(this.direction);
+  }
+
+  start() {
+    const action = () => {
+      setTimeout(() => {
+        if (this.fule === 0) {
+          alert("the agent can not move all balls into holes");
+          return;
+        }
+        if(BALLS.filter((item) => !item.isArrived).length === 0){
+          alert("AGENT WOOON! The agent took all the balls into the holes");
+          return;
+        }
+        const closeItems = this.searchAround();
+        const goal = this.chooseGoal(
+          closeItems.closeBalls,
+          closeItems.closeHolls
+        );
+        const dicision = this.makeDicision(goal.goalLocation);
+
+        if (dicision === DISISIONS.pickUp) {
+          this.pickUp(goal.goalElement);
+        } else if (dicision === DISISIONS.putDown) {
+          this.putDown(goal.goalElement);
+        } else {
+          if (this.direction !== dicision) {
+            this.turn(dicision);
+          }
+          this.goForward();
+          this.fule = this.fule - 1;
+          document.getElementById("fule").innerText = this.fule
+        }
+
+        action();
+      }, 800);
+    };
+
+    action();
+  }
+
+  generateElement() {
+    const element = this.getElement();
+
+    element.style.borderRadius = "4px";
+    element.style.clipPath = "polygon(0% 100%, 50% 0%, 100% 100%)";
+    element.style.border = 0;
+    element.style.backgroundColor = "blue";
+    element.style.transition = "all 400ms linear";
+
+    this.agentElement = element;
+
+    return element;
+  }
+}
 
 function generateRandomNumbers(numberCount, min, max) {
   const numbers = new Set();
