@@ -24,6 +24,8 @@ function readyGame() {
   BOARD_SIZE_CELL = Number(form[1].value);
   const ballsCount = Number(form[2].value);
 
+  document.getElementsByTagName("button")[1].disabled = false
+
   const balls = [];
   const holes = [];
 
@@ -357,10 +359,12 @@ class Agent extends Element {
       setTimeout(() => {
         if (this.fule === 0) {
           alert("the agent can not move all balls into holes");
+          document.getElementsByTagName("button")[1].disabled = true
           return;
         }
         if(BALLS.filter((item) => !item.isArrived).length === 0){
           alert("AGENT WOOON! The agent took all the balls into the holes");
+          document.getElementsByTagName("button")[1].disabled = true
           return;
         }
         const closeItems = this.searchAround();
