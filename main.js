@@ -80,7 +80,7 @@ class Element {
   cellNumber = 0;
   row = 0;
   column = 0;
-  ballElement = null;
+  currentElement = null;
 
   constructor(cellNumber) {
     this.cellNumber = cellNumber;
@@ -113,7 +113,7 @@ class Element {
       (cellSize / 2 + cellSize / (this.SIZE_RATIO * 2)) +
       "px";
 
-    this.ballElement = element;
+    this.currentElement = element;
 
     return element;
   }
@@ -129,22 +129,22 @@ class Ball extends Element {
 
   move(direction) {
     const cellSize = BOARD_SIZE_PX / BOARD_SIZE_CELL;
-    const postionFromTop = Number(this.ballElement.style.top.slice(0, -2));
-    const postionFromLeft = Number(this.ballElement.style.left.slice(0, -2));
+    const postionFromTop = Number(this.currentElement.style.top.slice(0, -2));
+    const postionFromLeft = Number(this.currentElement.style.left.slice(0, -2));
     if (direction === DISISIONS.top) {
-      this.ballElement.style.top = postionFromTop - (cellSize - 2) + "px";
+      this.currentElement.style.top = postionFromTop - (cellSize - 2) + "px";
       this.row = this.row - 1;
     }
     if (direction === DISISIONS.right) {
-      this.ballElement.style.left = postionFromLeft + (cellSize - 2) + "px";
+      this.currentElement.style.left = postionFromLeft + (cellSize - 2) + "px";
       this.column = this.column + 1;
     }
     if (direction === DISISIONS.left) {
-      this.ballElement.style.left = postionFromLeft - (cellSize - 2) + "px";
+      this.currentElement.style.left = postionFromLeft - (cellSize - 2) + "px";
       this.column = this.column - 1;
     }
     if (direction === DISISIONS.down) {
-      this.ballElement.style.top = postionFromTop + (cellSize - 2) + "px";
+      this.currentElement.style.top = postionFromTop + (cellSize - 2) + "px";
       this.row = this.row + 1;
     }
   }
@@ -152,7 +152,7 @@ class Ball extends Element {
   randomMove() {
     if (this.isArrived) return;
 
-    const isMove = Math.random() <= 0.1;
+    const isMove = Math.random() <= 0.9;
 
     if (!isMove) return;
 
@@ -181,6 +181,27 @@ class Ball extends Element {
     } else {
       this.move(DISISIONS.left);
     }
+
+    if (
+      BALLS.filter(
+        (ball) =>
+          ball.rowCol[0] === this.row &&
+          ball.rowCol[1] === this.column &&
+          ball.isArrived
+      ).length === 0
+    ) {
+      const holes = HOLES.filter(
+        (hole) =>
+          hole.rowCol[0] === this.row &&
+          hole.rowCol[1] === this.column &&
+          !hole.isFill
+      );
+      if (holes.length !== 0) {
+        holes[0].isFill = true;
+        this.isArrived = true;
+        holes[0].currentElement.style.borderColor = "#4caf50";
+      }
+    }
   }
 
   generateElement() {
@@ -200,10 +221,6 @@ class Hole extends Element {
   constructor(cellNumber) {
     super(cellNumber);
     this.SIZE_RATIO = 1.5;
-  }
-
-  fill() {
-    this.isFill = true;
   }
 
   generateElement() {
@@ -348,7 +365,7 @@ class Agent extends Element {
     this.pickedElement.isArrived = true;
     goalElement.isFill = true;
     this.pickedElement = null;
-    goalElement.ballElement.style.borderColor = "#4caf50";
+    goalElement.currentElement.style.borderColor = "#4caf50";
   }
 
   turn(direction) {
@@ -402,7 +419,7 @@ class Agent extends Element {
           document.getElementsByTagName("button")[1].disabled = true;
           return;
         }
-       
+
         const closeItems = this.searchAround();
         const goal = this.chooseGoal(
           closeItems.closeBalls,
@@ -415,7 +432,7 @@ class Agent extends Element {
         } else if (dicision === DISISIONS.putDown) {
           this.putDown(goal.goalElement);
           for (const ball of BALLS) {
-            ball.randomMove()
+            ball.randomMove();
           }
         } else {
           if (this.fule === 0) {
