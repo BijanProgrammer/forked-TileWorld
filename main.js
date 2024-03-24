@@ -1,4 +1,4 @@
-const BOARD_SIZE_PX = 770;
+const BOARD_SIZE_PX = 773;
 let BOARD_SIZE_CELL = 0;
 
 let AGENT = "";
@@ -24,7 +24,7 @@ function readyGame() {
   BOARD_SIZE_CELL = Number(form[1].value);
   const ballsCount = Number(form[2].value);
 
-  document.getElementsByTagName("button")[1].disabled = false
+  document.getElementsByTagName("button")[1].disabled = false;
 
   const balls = [];
   const holes = [];
@@ -137,15 +137,49 @@ class Ball extends Element {
     }
     if (direction === DISISIONS.right) {
       this.ballElement.style.left = postionFromLeft + (cellSize - 2) + "px";
-      this.row = this.column + 1;
+      this.column = this.column + 1;
     }
     if (direction === DISISIONS.left) {
       this.ballElement.style.left = postionFromLeft - (cellSize - 2) + "px";
-      this.row = this.column - 1;
+      this.column = this.column - 1;
     }
     if (direction === DISISIONS.down) {
       this.ballElement.style.top = postionFromTop + (cellSize - 2) + "px";
       this.row = this.row + 1;
+    }
+  }
+
+  randomMove() {
+    if (this.isArrived) return;
+
+    const isMove = Math.random() <= 0.1;
+
+    if (!isMove) return;
+
+    const directions = [
+      [this.row + 1, this.column],
+      [this.row, this.column + 1],
+      [this.row - 1, this.column],
+      [this.row, this.column - 1],
+    ].filter(
+      (item) =>
+        item[0] >= 0 &&
+        item[0] < BOARD_SIZE_CELL &&
+        item[1] >= 0 &&
+        item[1] < BOARD_SIZE_CELL
+    );
+
+    let randomLocation =
+      directions[Math.floor(Math.random() * directions.length)];
+
+    if (randomLocation[0] < this.row) {
+      this.move(DISISIONS.top);
+    } else if (randomLocation[0] > this.row) {
+      this.move(DISISIONS.down);
+    } else if (randomLocation[1] > this.column) {
+      this.move(DISISIONS.right);
+    } else {
+      this.move(DISISIONS.left);
     }
   }
 
@@ -187,13 +221,13 @@ class Agent extends Element {
   fule = 30;
   agentElement = null;
   pickedElement = null;
-  currentLocation = [-1, -1]
+  currentLocation = [-1, -1];
 
   constructor(cellNumber, fule) {
     super(cellNumber);
     this.SIZE_RATIO = 1.5;
-    this.fule = fule
-    document.getElementById("fule").innerText = this.fule
+    this.fule = fule;
+    document.getElementById("fule").innerText = this.fule;
   }
 
   searchAround() {
@@ -268,14 +302,18 @@ class Agent extends Element {
           item[0] >= 0 &&
           item[0] < BOARD_SIZE_CELL &&
           item[1] >= 0 &&
-          item[1] < BOARD_SIZE_CELL 
+          item[1] < BOARD_SIZE_CELL
       );
 
-      let randomLocation = [this.currentLocation[0], this.currentLocation[1]]
-      while (randomLocation[0] === this.currentLocation[0] && randomLocation[1] === this.currentLocation[1]){
-        randomLocation = directions[Math.floor(Math.random() * directions.length)];
+      let randomLocation = [this.currentLocation[0], this.currentLocation[1]];
+      while (
+        randomLocation[0] === this.currentLocation[0] &&
+        randomLocation[1] === this.currentLocation[1]
+      ) {
+        randomLocation =
+          directions[Math.floor(Math.random() * directions.length)];
       }
-        
+
       goalLocation = randomLocation;
     }
 
@@ -310,9 +348,11 @@ class Agent extends Element {
     this.pickedElement.isArrived = true;
     goalElement.isFill = true;
     this.pickedElement = null;
+    goalElement.ballElement.style.borderColor = "#4caf50";
   }
 
   turn(direction) {
+    this.agentElement.style.transition = "all 100ms linear";
     if (direction === DISISIONS.top) {
       this.agentElement.style.transform = "rotate(0deg)";
     }
@@ -333,7 +373,7 @@ class Agent extends Element {
     const cellSize = BOARD_SIZE_PX / BOARD_SIZE_CELL;
     const postionFromTop = Number(this.agentElement.style.top.slice(0, -2));
     const postionFromLeft = Number(this.agentElement.style.left.slice(0, -2));
-  this.currentLocation = [this.row, this.column]
+    this.currentLocation = [this.row, this.column];
     if (this.direction === DISISIONS.top) {
       this.agentElement.style.top = postionFromTop - (cellSize - 2) + "px";
       this.row = this.row - 1;
@@ -357,16 +397,12 @@ class Agent extends Element {
   start() {
     const action = () => {
       setTimeout(() => {
-        if (this.fule === 0) {
-          alert("the agent can not move all balls into holes");
-          document.getElementsByTagName("button")[1].disabled = true
-          return;
-        }
-        if(BALLS.filter((item) => !item.isArrived).length === 0){
+        if (BALLS.filter((item) => !item.isArrived).length === 0) {
           alert("AGENT WOOON! The agent took all the balls into the holes");
-          document.getElementsByTagName("button")[1].disabled = true
+          document.getElementsByTagName("button")[1].disabled = true;
           return;
         }
+       
         const closeItems = this.searchAround();
         const goal = this.chooseGoal(
           closeItems.closeBalls,
@@ -378,13 +414,26 @@ class Agent extends Element {
           this.pickUp(goal.goalElement);
         } else if (dicision === DISISIONS.putDown) {
           this.putDown(goal.goalElement);
+          for (const ball of BALLS) {
+            ball.randomMove()
+          }
         } else {
+          if (this.fule === 0) {
+            alert("the agent can not move all balls into holes");
+            document.getElementsByTagName("button")[1].disabled = true;
+            return;
+          }
+
           if (this.direction !== dicision) {
             this.turn(dicision);
           }
-          this.goForward();
-          this.fule = this.fule - 1;
-          document.getElementById("fule").innerText = this.fule
+
+          setTimeout(() => {
+            this.agentElement.style.transition = "all 400ms linear";
+            this.goForward();
+            this.fule = this.fule - 1;
+            document.getElementById("fule").innerText = this.fule;
+          }, 100);
         }
 
         action();
