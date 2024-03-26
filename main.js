@@ -4,7 +4,8 @@ let BOARD_SIZE_CELL = 0;
 let AGENT = "";
 let BALLS = "";
 let HOLES = "";
-let GAME_BOARD = [];
+
+let LOG = "";
 
 const DISISIONS = {
   pickUp: "pickup",
@@ -15,9 +16,14 @@ const DISISIONS = {
   down: "down",
 };
 
+let agentTimeOut = undefined;
+
 function readyGame() {
   const board = document.getElementById("board");
+  document.getElementsByTagName("button")[2].disabled = true;
   board.innerHTML = "";
+  LOG = "";
+  clearTimeout(agentTimeOut);
 
   const form = document.forms[0];
   const startFule = Number(form[0].value);
@@ -152,7 +158,7 @@ class Ball extends Element {
   randomMove() {
     if (this.isArrived) return;
 
-    const isMove = Math.random() <= 0.9;
+    const isMove = Math.random() <= 0.1;
 
     if (!isMove) return;
 
@@ -240,6 +246,9 @@ class Agent extends Element {
   pickedElement = null;
   currentLocation = [-1, -1];
 
+  freeBallsLocationMemory = [];
+  freeHolesLocationMemmory = [];
+
   constructor(cellNumber, fule) {
     super(cellNumber);
     this.SIZE_RATIO = 1.5;
@@ -275,6 +284,46 @@ class Agent extends Element {
     return { closeBalls: closeBalls, closeHolls: closeHolls };
   }
 
+  updateMemory(closeBalls, closeHolls) {
+    const closeBallsLocations = closeBalls.map((item) => item.rowCol.join(","));
+    const closeHolesLocations = closeHolls.map((item) => item.rowCol.join(","));
+
+    const closeEmptyLocations = [];
+    for (let i = this.row - 1; i <= this.row + 1; i++) {
+      if (i > BOARD_SIZE_CELL || i < 0) continue;
+
+      for (let j = this.column - 1; j <= this.column + 1; j++) {
+        if (j > BOARD_SIZE_CELL || j < 0) continue;
+
+        const location = i + "," + j;
+        if (
+          !closeBallsLocations.includes(location) &&
+          !closeHolesLocations.includes(location)
+        ) {
+          closeEmptyLocations.push(location);
+        }
+      }
+    }
+
+    this.freeBallsLocationMemory = this.freeBallsLocationMemory.filter(
+      (item) => !closeEmptyLocations.includes(item)
+    );
+    this.freeHolesLocationMemmory = this.freeHolesLocationMemmory.filter(
+      (item) => !closeEmptyLocations.includes(item)
+    );
+
+    closeBallsLocations.map((item) => {
+      if (!this.freeBallsLocationMemory.includes(item)) {
+        this.freeBallsLocationMemory.push(item);
+      }
+    });
+    closeHolesLocations.map((item) => {
+      if (!this.freeHolesLocationMemmory.includes(item)) {
+        this.freeHolesLocationMemmory.push(item);
+      }
+    });
+  }
+
   chooseGoal(closeBalls, closeHolls) {
     let goalElement = null;
     let goalLocation = null;
@@ -293,6 +342,21 @@ class Agent extends Element {
           minimumDistance = manhatanDistance;
         }
       });
+
+      if (goalLocation === null) {
+        this.freeBallsLocationMemory.map((item) => {
+          const itemLocation = item.split(",");
+          const manhatanDistance =
+            Math.abs(itemLocation[0] - this.row) +
+            Math.abs(itemLocation[1] - this.column);
+
+          if (manhatanDistance < minimumDistance) {
+            goalElement = null;
+            goalLocation = itemLocation;
+            minimumDistance = manhatanDistance;
+          }
+        });
+      }
     } else {
       closeHolls.map((item) => {
         const itemLocation = item.rowCol;
@@ -306,6 +370,21 @@ class Agent extends Element {
           minimumDistance = manhatanDistance;
         }
       });
+
+      if (goalLocation === null) {
+        this.freeHolesLocationMemmory.map((item) => {
+          const itemLocation = item.split(",");
+          const manhatanDistance =
+            Math.abs(itemLocation[0] - this.row) +
+            Math.abs(itemLocation[1] - this.column);
+
+          if (manhatanDistance < minimumDistance) {
+            goalElement = null;
+            goalLocation = itemLocation;
+            minimumDistance = manhatanDistance;
+          }
+        });
+      }
     }
 
     if (goalLocation === null) {
@@ -413,14 +492,18 @@ class Agent extends Element {
 
   start() {
     const action = () => {
-      setTimeout(() => {
+      agentTimeOut = setTimeout(() => {
+        manageLogs();
+
         if (BALLS.filter((item) => !item.isArrived).length === 0) {
           alert("AGENT WOOON! The agent took all the balls into the holes");
           document.getElementsByTagName("button")[1].disabled = true;
+          document.getElementsByTagName("button")[2].disabled = false;
           return;
         }
 
         const closeItems = this.searchAround();
+        this.updateMemory(closeItems.closeBalls, closeItems.closeHolls);
         const goal = this.chooseGoal(
           closeItems.closeBalls,
           closeItems.closeHolls
@@ -438,6 +521,7 @@ class Agent extends Element {
           if (this.fule === 0) {
             alert("the agent can not move all balls into holes");
             document.getElementsByTagName("button")[1].disabled = true;
+            document.getElementsByTagName("button")[2].disabled = false;
             return;
           }
 
@@ -484,4 +568,35 @@ function generateRandomNumbers(numberCount, min, max) {
   }
 
   return [...numbers];
+}
+
+function manageLogs() {
+  let step = "";
+
+  const ballsLocationString = BALLS.map(
+    (item) => `(${item.rowCol.join("، ")})`
+  ).join(" ");
+  const holesLocationString = HOLES.map(
+    (item) => `(${item.rowCol.join("، ")})`
+  ).join(" ");
+  const agentsLocationString = `(${AGENT.rowCol.join("، ")})`;
+
+  step = `balls: ${ballsLocationString} \n holes: ${holesLocationString} \n agent: ${agentsLocationString} \n agent fule: ${AGENT.fule} \n agent direction: ${AGENT.direction}`;
+  console.log(step);
+
+  const divider =
+    "-------------------------------------------------------------------------------------------------";
+  step += `\n\n ${divider} \n\n`;
+
+  LOG += step;
+}
+
+function downloadLogsAsTXT() {
+  let content = "data:text/csv;charset=utf-8,%EF%BB%BF" + encodeURI(LOG);
+  const link = document.createElement("a");
+  link.setAttribute("href", content);
+  link.setAttribute("download", "logs.txt");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }

@@ -24,8 +24,10 @@
             <label for="bcount">balls count:</label><br />
             <input type="number" name="bcount" value="5" /><br /><br />
           </form>
-          <button onclick="readyGame()">ready game</button>
+          <button onclick="readyGame()">make ready</button>
           <button disabled onclick="runGame()">start</button>
+          <br/>
+          <button disabled onclick="downloadLogsAsTXT()">download logs as TXT</button>
         </div>
 
         <div id="board" class="game--board"></div>
