@@ -21,6 +21,7 @@ let agentTimeOut = undefined;
 function readyGame() {
   const board = document.getElementById("board");
   document.getElementsByTagName("button")[2].disabled = true;
+  document.getElementsByTagName("button")[1].disabled = false;
   board.innerHTML = "";
   LOG = "";
   clearTimeout(agentTimeOut);
@@ -30,7 +31,11 @@ function readyGame() {
   BOARD_SIZE_CELL = Number(form[1].value);
   const ballsCount = Number(form[2].value);
 
-  document.getElementsByTagName("button")[1].disabled = false;
+  if(ballsCount * 2 > BOARD_SIZE_CELL * BOARD_SIZE_CELL){
+    alert(`it is impossible to generate ${ballsCount} balls and ${ballsCount} holes in ${BOARD_SIZE_CELL * BOARD_SIZE_CELL} cell`)
+    document.getElementsByTagName("button")[1].disabled = true;
+    return;
+  }
 
   const balls = [];
   const holes = [];
@@ -66,30 +71,20 @@ function readyGame() {
     }
   }
 
-  for (let i = 0; i < BOARD_SIZE_CELL; i++) {
-    for (let j = 0; j < BOARD_SIZE_CELL; j++) {
-      const array = [];
-    }
-  }
-
   AGENT = agent;
   BALLS = balls;
   HOLES = holes;
 }
-
 function runGame() {
   AGENT.start();
 }
-
 class Element {
   SIZE_RATIO = 1;
-  cellNumber = 0;
   row = 0;
   column = 0;
   currentElement = null;
 
   constructor(cellNumber) {
-    this.cellNumber = cellNumber;
     this.row = Math.floor(cellNumber / BOARD_SIZE_CELL);
     this.column = cellNumber - this.row * BOARD_SIZE_CELL - 1;
 
@@ -124,7 +119,6 @@ class Element {
     return element;
   }
 }
-
 class Ball extends Element {
   isArrived = false;
 
@@ -188,25 +182,16 @@ class Ball extends Element {
       this.move(DISISIONS.left);
     }
 
-    if (
-      BALLS.filter(
-        (ball) =>
-          ball.rowCol[0] === this.row &&
-          ball.rowCol[1] === this.column &&
-          ball.isArrived
-      ).length === 0
-    ) {
-      const holes = HOLES.filter(
-        (hole) =>
-          hole.rowCol[0] === this.row &&
-          hole.rowCol[1] === this.column &&
-          !hole.isFill
-      );
-      if (holes.length !== 0) {
-        holes[0].isFill = true;
-        this.isArrived = true;
-        holes[0].currentElement.style.borderColor = "#4caf50";
-      }
+    const holes = HOLES.filter(
+      (hole) =>
+        hole.rowCol[0] === this.row &&
+        hole.rowCol[1] === this.column &&
+        !hole.isFill
+    );
+    if (holes.length !== 0) {
+      holes[0].isFill = true;
+      this.isArrived = true;
+      holes[0].currentElement.style.borderColor = "#4caf50";
     }
   }
 
@@ -220,7 +205,6 @@ class Ball extends Element {
     return element;
   }
 }
-
 class Hole extends Element {
   isFill = false;
 
@@ -238,11 +222,9 @@ class Hole extends Element {
     return element;
   }
 }
-
 class Agent extends Element {
   direction = DISISIONS.top;
   fule = 30;
-  agentElement = null;
   pickedElement = null;
   currentLocation = [-1, -1];
 
@@ -416,7 +398,7 @@ class Agent extends Element {
     return { goalLocation: goalLocation, goalElement: goalElement };
   }
 
-  makeDicision(goalLocation) {
+  makeDecision(goalLocation) {
     if (goalLocation[0] === this.row && goalLocation[1] === this.column) {
       if (this.pickedElement === null) {
         return DISISIONS.pickUp;
@@ -448,18 +430,18 @@ class Agent extends Element {
   }
 
   turn(direction) {
-    this.agentElement.style.transition = "all 100ms linear";
+    this.currentElement.style.transition = "all 100ms linear";
     if (direction === DISISIONS.top) {
-      this.agentElement.style.transform = "rotate(0deg)";
+      this.currentElement.style.transform = "rotate(0deg)";
     }
     if (direction === DISISIONS.right) {
-      this.agentElement.style.transform = "rotate(90deg)";
+      this.currentElement.style.transform = "rotate(90deg)";
     }
     if (direction === DISISIONS.left) {
-      this.agentElement.style.transform = "rotate(270deg)";
+      this.currentElement.style.transform = "rotate(270deg)";
     }
     if (direction === DISISIONS.down) {
-      this.agentElement.style.transform = "rotate(180deg)";
+      this.currentElement.style.transform = "rotate(180deg)";
     }
 
     this.direction = direction;
@@ -467,23 +449,23 @@ class Agent extends Element {
 
   goForward() {
     const cellSize = BOARD_SIZE_PX / BOARD_SIZE_CELL;
-    const postionFromTop = Number(this.agentElement.style.top.slice(0, -2));
-    const postionFromLeft = Number(this.agentElement.style.left.slice(0, -2));
+    const postionFromTop = Number(this.currentElement.style.top.slice(0, -2));
+    const postionFromLeft = Number(this.currentElement.style.left.slice(0, -2));
     this.currentLocation = [this.row, this.column];
     if (this.direction === DISISIONS.top) {
-      this.agentElement.style.top = postionFromTop - (cellSize - 2) + "px";
+      this.currentElement.style.top = postionFromTop - (cellSize - 2) + "px";
       this.row = this.row - 1;
     }
     if (this.direction === DISISIONS.right) {
-      this.agentElement.style.left = postionFromLeft + (cellSize - 2) + "px";
+      this.currentElement.style.left = postionFromLeft + (cellSize - 2) + "px";
       this.column = this.column + 1;
     }
     if (this.direction === DISISIONS.left) {
-      this.agentElement.style.left = postionFromLeft - (cellSize - 2) + "px";
+      this.currentElement.style.left = postionFromLeft - (cellSize - 2) + "px";
       this.column = this.column - 1;
     }
     if (this.direction === DISISIONS.down) {
-      this.agentElement.style.top = postionFromTop + (cellSize - 2) + "px";
+      this.currentElement.style.top = postionFromTop + (cellSize - 2) + "px";
       this.row = this.row + 1;
     }
 
@@ -508,7 +490,7 @@ class Agent extends Element {
           closeItems.closeBalls,
           closeItems.closeHolls
         );
-        const dicision = this.makeDicision(goal.goalLocation);
+        const dicision = this.makeDecision(goal.goalLocation);
 
         if (dicision === DISISIONS.pickUp) {
           this.pickUp(goal.goalElement);
@@ -528,19 +510,16 @@ class Agent extends Element {
           if (this.direction !== dicision) {
             this.turn(dicision);
           }
-
           setTimeout(() => {
-            this.agentElement.style.transition = "all 400ms linear";
+            this.currentElement.style.transition = "all 400ms linear";
             this.goForward();
             this.fule = this.fule - 1;
             document.getElementById("fule").innerText = this.fule;
           }, 100);
         }
-
         action();
       }, 800);
     };
-
     action();
   }
 
@@ -553,7 +532,7 @@ class Agent extends Element {
     element.style.backgroundColor = "blue";
     element.style.transition = "all 400ms linear";
 
-    this.agentElement = element;
+    this.currentElement = element;
 
     return element;
   }
@@ -574,19 +553,19 @@ function manageLogs() {
   let step = "";
 
   const ballsLocationString = BALLS.map(
-    (item) => `(${item.rowCol.join("، ")})`
+    (item) => `(${item.rowCol.join(", ")})`
   ).join(" ");
   const holesLocationString = HOLES.map(
-    (item) => `(${item.rowCol.join("، ")})`
+    (item) => `(${item.rowCol.join(", ")})`
   ).join(" ");
-  const agentsLocationString = `(${AGENT.rowCol.join("، ")})`;
+  const agentsLocationString = `(${AGENT.rowCol.join(", ")})`;
 
   step = `balls: ${ballsLocationString} \n holes: ${holesLocationString} \n agent: ${agentsLocationString} \n agent fule: ${AGENT.fule} \n agent direction: ${AGENT.direction}`;
   console.log(step);
 
   const divider =
     "-------------------------------------------------------------------------------------------------";
-  step += `\n\n ${divider} \n\n`;
+  step += `\n ${divider} \n`;
 
   LOG += step;
 }
