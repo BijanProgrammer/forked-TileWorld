@@ -31,8 +31,12 @@ function readyGame() {
   BOARD_SIZE_CELL = Number(form[1].value);
   const ballsCount = Number(form[2].value);
 
-  if(ballsCount * 2 > BOARD_SIZE_CELL * BOARD_SIZE_CELL){
-    alert(`it is impossible to generate ${ballsCount} balls and ${ballsCount} holes in ${BOARD_SIZE_CELL * BOARD_SIZE_CELL} cell`)
+  if (ballsCount * 2 > BOARD_SIZE_CELL * BOARD_SIZE_CELL) {
+    alert(
+      `it is impossible to generate ${ballsCount} balls and ${ballsCount} holes in ${
+        BOARD_SIZE_CELL * BOARD_SIZE_CELL
+      } cell`
+    );
     document.getElementsByTagName("button")[1].disabled = true;
     return;
   }
@@ -132,19 +136,19 @@ class Ball extends Element {
     const postionFromTop = Number(this.currentElement.style.top.slice(0, -2));
     const postionFromLeft = Number(this.currentElement.style.left.slice(0, -2));
     if (direction === DISISIONS.top) {
-      this.currentElement.style.top = postionFromTop - (cellSize - 2) + "px";
+      this.currentElement.style.top = postionFromTop - (cellSize) + "px";
       this.row = this.row - 1;
     }
     if (direction === DISISIONS.right) {
-      this.currentElement.style.left = postionFromLeft + (cellSize - 2) + "px";
+      this.currentElement.style.left = postionFromLeft + (cellSize) + "px";
       this.column = this.column + 1;
     }
     if (direction === DISISIONS.left) {
-      this.currentElement.style.left = postionFromLeft - (cellSize - 2) + "px";
+      this.currentElement.style.left = postionFromLeft - (cellSize) + "px";
       this.column = this.column - 1;
     }
     if (direction === DISISIONS.down) {
-      this.currentElement.style.top = postionFromTop + (cellSize - 2) + "px";
+      this.currentElement.style.top = postionFromTop + (cellSize) + "px";
       this.row = this.row + 1;
     }
   }
@@ -200,7 +204,7 @@ class Ball extends Element {
 
     element.style.borderRadius = "999px";
     element.style.backgroundColor = "#4caf50";
-    element.style.transition = "all 300ms linear";
+    element.style.transition = "all 500ms linear";
 
     return element;
   }
@@ -430,7 +434,6 @@ class Agent extends Element {
   }
 
   turn(direction) {
-    this.currentElement.style.transition = "all 100ms linear";
     if (direction === DISISIONS.top) {
       this.currentElement.style.transform = "rotate(0deg)";
     }
@@ -453,19 +456,19 @@ class Agent extends Element {
     const postionFromLeft = Number(this.currentElement.style.left.slice(0, -2));
     this.currentLocation = [this.row, this.column];
     if (this.direction === DISISIONS.top) {
-      this.currentElement.style.top = postionFromTop - (cellSize - 2) + "px";
+      this.currentElement.style.top = postionFromTop - (cellSize) + "px";
       this.row = this.row - 1;
     }
     if (this.direction === DISISIONS.right) {
-      this.currentElement.style.left = postionFromLeft + (cellSize - 2) + "px";
+      this.currentElement.style.left = postionFromLeft + (cellSize) + "px";
       this.column = this.column + 1;
     }
     if (this.direction === DISISIONS.left) {
-      this.currentElement.style.left = postionFromLeft - (cellSize - 2) + "px";
+      this.currentElement.style.left = postionFromLeft - (cellSize) + "px";
       this.column = this.column - 1;
     }
     if (this.direction === DISISIONS.down) {
-      this.currentElement.style.top = postionFromTop + (cellSize - 2) + "px";
+      this.currentElement.style.top = postionFromTop + (cellSize) + "px";
       this.row = this.row + 1;
     }
 
@@ -510,12 +513,10 @@ class Agent extends Element {
           if (this.direction !== dicision) {
             this.turn(dicision);
           }
-          setTimeout(() => {
-            this.currentElement.style.transition = "all 400ms linear";
-            this.goForward();
-            this.fule = this.fule - 1;
-            document.getElementById("fule").innerText = this.fule;
-          }, 100);
+
+          this.goForward();
+          this.fule = this.fule - 1;
+          document.getElementById("fule").innerText = this.fule;
         }
         action();
       }, 800);
@@ -530,7 +531,8 @@ class Agent extends Element {
     element.style.clipPath = "polygon(0% 100%, 50% 0%, 100% 100%)";
     element.style.border = 0;
     element.style.backgroundColor = "blue";
-    element.style.transition = "all 400ms linear";
+    element.style.transition =
+      "top 500ms linear, left 500ms linear, transform 100ms linear";
 
     this.currentElement = element;
 
