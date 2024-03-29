@@ -31,9 +31,9 @@ function readyGame() {
   BOARD_SIZE_CELL = Number(form[1].value);
   const ballsCount = Number(form[2].value);
 
-  if (ballsCount * 2 > BOARD_SIZE_CELL * BOARD_SIZE_CELL) {
+  if (ballsCount * 2 + 1 > BOARD_SIZE_CELL * BOARD_SIZE_CELL) {
     alert(
-      `it is impossible to generate ${ballsCount} balls and ${ballsCount} holes in ${
+      `it is impossible to generate ${ballsCount} balls and ${ballsCount} holes and 1 agent in ${
         BOARD_SIZE_CELL * BOARD_SIZE_CELL
       } cell`
     );
@@ -45,16 +45,12 @@ function readyGame() {
   const holes = [];
 
   const randomNumbers = generateRandomNumbers(
-    2 * ballsCount,
+    2 * ballsCount + 1,
     1,
     BOARD_SIZE_CELL * BOARD_SIZE_CELL
   );
-  const agentCellNumber = generateRandomNumbers(
-    1,
-    1,
-    BOARD_SIZE_CELL * BOARD_SIZE_CELL
-  );
-  const agent = new Agent(agentCellNumber[0], startFule);
+
+  const agent = new Agent(randomNumbers[randomNumbers.length - 1], startFule);
   board.appendChild(agent.generateElement());
 
   for (let i = 0; i < ballsCount; i++) {
@@ -136,19 +132,19 @@ class Ball extends Element {
     const postionFromTop = Number(this.currentElement.style.top.slice(0, -2));
     const postionFromLeft = Number(this.currentElement.style.left.slice(0, -2));
     if (direction === DISISIONS.top) {
-      this.currentElement.style.top = postionFromTop - (cellSize) + "px";
+      this.currentElement.style.top = postionFromTop - cellSize + "px";
       this.row = this.row - 1;
     }
     if (direction === DISISIONS.right) {
-      this.currentElement.style.left = postionFromLeft + (cellSize) + "px";
+      this.currentElement.style.left = postionFromLeft + cellSize + "px";
       this.column = this.column + 1;
     }
     if (direction === DISISIONS.left) {
-      this.currentElement.style.left = postionFromLeft - (cellSize) + "px";
+      this.currentElement.style.left = postionFromLeft - cellSize + "px";
       this.column = this.column - 1;
     }
     if (direction === DISISIONS.down) {
-      this.currentElement.style.top = postionFromTop + (cellSize) + "px";
+      this.currentElement.style.top = postionFromTop + cellSize + "px";
       this.row = this.row + 1;
     }
   }
@@ -456,19 +452,19 @@ class Agent extends Element {
     const postionFromLeft = Number(this.currentElement.style.left.slice(0, -2));
     this.currentLocation = [this.row, this.column];
     if (this.direction === DISISIONS.top) {
-      this.currentElement.style.top = postionFromTop - (cellSize) + "px";
+      this.currentElement.style.top = postionFromTop - cellSize + "px";
       this.row = this.row - 1;
     }
     if (this.direction === DISISIONS.right) {
-      this.currentElement.style.left = postionFromLeft + (cellSize) + "px";
+      this.currentElement.style.left = postionFromLeft + cellSize + "px";
       this.column = this.column + 1;
     }
     if (this.direction === DISISIONS.left) {
-      this.currentElement.style.left = postionFromLeft - (cellSize) + "px";
+      this.currentElement.style.left = postionFromLeft - cellSize + "px";
       this.column = this.column - 1;
     }
     if (this.direction === DISISIONS.down) {
-      this.currentElement.style.top = postionFromTop + (cellSize) + "px";
+      this.currentElement.style.top = postionFromTop + cellSize + "px";
       this.row = this.row + 1;
     }
 
