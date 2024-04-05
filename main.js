@@ -156,7 +156,7 @@ class Ball extends Element {
 
     if (!isMove) return;
 
-    const directions = [
+    let directions = [
       [this.row + 1, this.column],
       [this.row, this.column + 1],
       [this.row - 1, this.column],
@@ -168,6 +168,28 @@ class Ball extends Element {
         item[1] >= 0 &&
         item[1] < BOARD_SIZE_CELL
     );
+
+    const closeBallsLocations = BALLS.filter((item) => {
+      const location = item.rowCol;
+      return (
+        Math.abs(location[0] - this.row) +
+          Math.abs(location[1] - this.column) ===
+        1
+      );
+    }).map((ball) => ball.rowCol);
+    if (closeBallsLocations.length !== 0) {
+      directions = directions.filter((direct) => {
+        for (let index = 0; index < closeBallsLocations.length; index++) {
+          const location = closeBallsLocations[index];
+          if (location[0] === direct[0] && location[1] === direct[1])
+            return false;
+        }
+
+        return true;
+      });
+
+      if (directions.length === 0) return;
+    }
 
     let randomLocation =
       directions[Math.floor(Math.random() * directions.length)];
