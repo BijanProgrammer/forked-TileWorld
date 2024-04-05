@@ -174,7 +174,7 @@ class Ball extends Element {
       return (
         Math.abs(location[0] - this.row) +
           Math.abs(location[1] - this.column) ===
-        1
+        1 && !this.isArrived
       );
     }).map((ball) => ball.rowCol);
     if (closeBallsLocations.length !== 0) {
@@ -184,7 +184,6 @@ class Ball extends Element {
           if (location[0] === direct[0] && location[1] === direct[1])
             return false;
         }
-
         return true;
       });
 
