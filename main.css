@@ -74,11 +74,17 @@ input {
 
 .game-fule{
   display: flex;
+  flex-direction: column;
   gap: 10px;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
-.game-fule > p{
+.game-fule > div{
+  display: flex;
+  gap: 5px;
+}
+
+.game-fule > div > p{
   color: #4caf50;
   font-size: 24px;
 }

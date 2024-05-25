@@ -92,8 +92,42 @@ class Ball extends Element {
     if (holes.length !== 0) {
       holes[0].isFill = true;
       this.isArrived = true;
+      holes[0].FilledBallObject = this
       holes[0].currentElement.style.borderColor = "#4caf50";
     }
+  }
+
+  randomThrow(){
+    const agentLocations = AGENTS.map((item) => item.row+","+ item.column)
+    const ballsLocations = BALLS.map((item) => item.row+","+ item.column)
+    const holeLocations = HOLES.map((item) => item.row+","+ item.column)
+
+    const busyLocations = [...agentLocations, ...ballsLocations, ...holeLocations]
+    const freeLocations = []
+
+    for (let i = 0; i < BOARD_SIZE_CELL; i++) {
+      for (let j = 0; j < BOARD_SIZE_CELL; j++) {
+        const loc = i+","+j;
+        if(!busyLocations.includes(loc)){
+          freeLocations.push([i,j])
+        }
+      }
+    }
+
+    const max = freeLocations.length
+    const randomnumber = Math.floor(Math.random() * (max))
+
+    const selectedLocation = freeLocations[randomnumber]
+
+    const postionFromTop = Number(this.currentElement.style.top.slice(0, -2));
+    const postionFromLeft = Number(this.currentElement.style.left.slice(0, -2));
+    const cellSize = BOARD_SIZE_PX / BOARD_SIZE_CELL;
+
+    this.currentElement.style.top = postionFromTop + (selectedLocation[0] - this.row) * cellSize + "px";
+    this.currentElement.style.left = postionFromLeft + (selectedLocation[1] - this.column) * cellSize + "px";
+
+    this.row = selectedLocation[0];
+    this.column = selectedLocation[1];
   }
 
   generateElement() {
@@ -102,6 +136,7 @@ class Ball extends Element {
     element.style.borderRadius = "999px";
     element.style.backgroundColor = "#4caf50";
     element.style.transition = "all 500ms linear";
+    element.style.zIndex = 1
 
     return element;
   }

@@ -4,6 +4,7 @@ let BOARD_SIZE_CELL = 0;
 let AGENTS = "";
 let BALLS = "";
 let HOLES = "";
+let TEAMS = "";
 
 let LOG = "";
 
@@ -17,6 +18,7 @@ const DISISIONS = {
 };
 
 let agentTimeOut = undefined;
+let isGameAlert = false
 
 function readyGame() {
   const board = document.getElementById("board");
@@ -24,16 +26,20 @@ function readyGame() {
   document.getElementsByTagName("button")[1].disabled = false;
   board.innerHTML = "";
   LOG = "";
+  isGameAlert = false;
   clearTimeout(agentTimeOut);
 
   const form = document.forms[0];
   const startFule = Number(form[0].value);
   BOARD_SIZE_CELL = Number(form[1].value);
   const ballsCount = Number(form[2].value);
+  const team1PlayerCount = Number(form[3].value);
+  const team2PlayerCount = Number(form[4].value);
 
-  if (ballsCount * 2 + 2 > BOARD_SIZE_CELL * BOARD_SIZE_CELL) {
+
+  if (ballsCount * 2 + team1PlayerCount + team2PlayerCount > BOARD_SIZE_CELL * BOARD_SIZE_CELL) {
     alert(
-      `it is impossible to generate ${ballsCount} balls and ${ballsCount} holes and 2 agent in ${
+      `it is impossible to generate ${ballsCount} balls and ${ballsCount} holes and ${team1PlayerCount + team2PlayerCount} agents in ${
         BOARD_SIZE_CELL * BOARD_SIZE_CELL
       } cell`
     );
@@ -43,27 +49,13 @@ function readyGame() {
 
   const balls = [];
   const holes = [];
+  const agents = []
 
   const randomNumbers = generateRandomNumbers(
-    2 * ballsCount + 2,
+    2 * ballsCount + team1PlayerCount + team2PlayerCount,
     1,
     BOARD_SIZE_CELL * BOARD_SIZE_CELL
   );
-
-  const firstTeam = new TeamInfo();
-  const agent1 = new Agent(
-    randomNumbers[randomNumbers.length - 2],
-    startFule,
-    firstTeam
-  );
-  const agent2 = new Agent(
-    randomNumbers[randomNumbers.length - 1],
-    startFule,
-    firstTeam
-  );
-
-  board.appendChild(agent1.generateElement());
-  board.appendChild(agent2.generateElement());
 
   for (let i = 0; i < ballsCount; i++) {
     balls[i] = new Ball(randomNumbers[i]);
@@ -72,6 +64,17 @@ function readyGame() {
   for (let i = 0; i < ballsCount; i++) {
     holes[i] = new Hole(randomNumbers[i + ballsCount]);
     board.appendChild(holes[i].generateElement());
+  }
+  const firstTeam = new TeamInfo("blue","team_blue");
+  const secondTeam = new TeamInfo("red","team_red");
+  for (let i = 0; i < team1PlayerCount + team2PlayerCount; i++) {
+    const team = i < team1PlayerCount ? firstTeam : secondTeam
+    agents[i] =  new Agent(
+      randomNumbers[i + 2 * ballsCount],
+      startFule,
+      team
+    );
+    board.appendChild(agents[i].generateElement());
   }
 
   for (let i = 0; i < BOARD_SIZE_CELL; i++) {
@@ -83,7 +86,8 @@ function readyGame() {
     }
   }
 
-  AGENTS = [agent1, agent2];
+  TEAMS = [firstTeam, secondTeam]
+  AGENTS = agents;
   BALLS = balls;
   HOLES = holes;
 }
@@ -158,8 +162,9 @@ function manageLogs() {
         item.direction
       })`
   ).join(" ");
+  const teams = TEAMS.map((team) => "(" + team.id + "---> score:" + team.score + ")")
 
-  step = `balls: ${ballsLocationString} \n holes: ${holesLocationString} \n agent: ${agentsLocationString}`;
+  step = `balls: ${ballsLocationString} \n holes: ${holesLocationString} \n agent: ${agentsLocationString} \n teams: ${teams}`;
   console.log(step);
 
   const divider =

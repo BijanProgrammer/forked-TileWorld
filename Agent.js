@@ -3,6 +3,7 @@ class Agent extends Element {
   fule = 30;
   pickedElement = null;
   currentLocation = [-1, -1];
+  unSuccessfullAttemptCount = 0;
 
   name = "";
   teamInfo = ""; // team info object
@@ -38,7 +39,8 @@ class Agent extends Element {
         location[0] >= this.row - 1 &&
         location[1] <= this.column + 1 &&
         location[1] >= this.column - 1 &&
-        !item.isFill
+        (!item.isFill ||
+          (item.isFill && item.FilledByTeamId !== this.teamInfo.id))
       );
     });
 
@@ -166,7 +168,7 @@ class Agent extends Element {
       }
     }
 
-    if (goalLocation === null) {
+    const findRandomLocation = (emergence) => {
       const directions = [
         [this.row + 1, this.column],
         [this.row, this.column + 1],
@@ -182,15 +184,27 @@ class Agent extends Element {
 
       let randomLocation = [this.currentLocation[0], this.currentLocation[1]];
 
-      while (
-        randomLocation[0] === this.currentLocation[0] &&
-        randomLocation[1] === this.currentLocation[1]
-      ) {
-        randomLocation =
-          directions[Math.floor(Math.random() * directions.length)];
+      if (emergence) {
+        directions[Math.floor(Math.random() * directions.length)];
+      } else {
+        while (
+          randomLocation[0] === this.currentLocation[0] &&
+          randomLocation[1] === this.currentLocation[1]
+        ) {
+          randomLocation =
+            directions[Math.floor(Math.random() * directions.length)];
+        }
       }
 
-      goalLocation = randomLocation;
+      return randomLocation;
+    };
+
+    if (goalLocation === null && this.unSuccessfullAttemptCount <= 3) {
+      goalLocation = findRandomLocation(false);
+    }
+
+    if (this.unSuccessfullAttemptCount > 3) {
+      goalLocation = findRandomLocation(true);
     }
 
     return { goalLocation: goalLocation, goalElement: goalElement };
@@ -209,15 +223,40 @@ class Agent extends Element {
         return DISISIONS.putDown;
       }
     } else {
-      if (goalLocation[0] < this.row) {
+      const topLocation = `${this.row - 1},${this.column}`;
+      const rightLocation = `${this.row},${this.column + 1}`;
+      const downLocation = `${this.row + 1},${this.column}`;
+      const leftLocation = `${this.row},${this.column - 1}`;
+
+      const locationsArr = AGENTS.filter((item) => item.fule > 0).map(
+        (item) => item.row + "," + item.column
+      );
+
+      if (goalLocation[0] < this.row && !locationsArr.includes(topLocation)) {
+        this.unSuccessfullAttemptCount = 0;
         return DISISIONS.top;
-      } else if (goalLocation[0] > this.row) {
+      } else if (
+        goalLocation[0] > this.row &&
+        !locationsArr.includes(downLocation)
+      ) {
+        this.unSuccessfullAttemptCount = 0;
         return DISISIONS.down;
-      } else if (goalLocation[1] > this.column) {
+      } else if (
+        goalLocation[1] > this.column &&
+        !locationsArr.includes(rightLocation)
+      ) {
+        this.unSuccessfullAttemptCount = 0;
         return DISISIONS.right;
-      } else {
+      } else if (
+        goalLocation[1] < this.column &&
+        !locationsArr.includes(leftLocation)
+      ) {
+        this.unSuccessfullAttemptCount = 0;
         return DISISIONS.left;
       }
+
+      this.unSuccessfullAttemptCount += 1;
+      return "";
     }
   }
 
@@ -229,11 +268,23 @@ class Agent extends Element {
   }
 
   putDown(goalElement) {
+    if (goalElement.isFill) {
+      const ball = goalElement.FilledBallObject;
+      ball.isArrived = false;
+      ball.randomThrow();
+    }
+
     this.pickedElement.isArrived = true;
     this.pickedElement.isPicked = false;
+
     goalElement.isFill = true;
+    goalElement.FilledByTeamId = this.teamInfo.id;
+    goalElement.FilledBallObject = this.pickedElement;
+    goalElement.currentElement.style.borderColor = this.teamInfo.teamColor;
+
     this.pickedElement = null;
-    goalElement.currentElement.style.borderColor = "#4caf50";
+
+    TEAMS.map((team) => team.scoreCalculator());
   }
 
   turn(direction) {
@@ -276,6 +327,9 @@ class Agent extends Element {
     }
 
     if (this.pickedElement) this.pickedElement.move(this.direction);
+
+    this.fule = this.fule - 1;
+    this.currentElement.innerText = this.fule;
   }
 
   start() {
@@ -284,7 +338,11 @@ class Agent extends Element {
         manageLogs();
 
         if (BALLS.filter((item) => !item.isArrived).length === 0) {
-          alert("AGENTS WOOON! The agents took all the balls into the holes");
+          const winner = TEAMS.sort((a, b) => b.score - a.score)[0];
+          if (!isGameAlert) {
+            isGameAlert = true;
+            alert(winner.id + " is winnnn");
+          }
           document.getElementsByTagName("button")[1].disabled = true;
           document.getElementsByTagName("button")[2].disabled = false;
           return;
@@ -295,6 +353,7 @@ class Agent extends Element {
           closeItems.closeBalls,
           closeItems.closeHolls
         );
+        
         this.updateGoalLocationInMemory(goal.goalLocation);
         const dicision = this.makeDecision(goal.goalLocation);
 
@@ -305,24 +364,27 @@ class Agent extends Element {
           for (const ball of BALLS) {
             ball.randomMove();
           }
-        } else {
-          if (AGENTS.every((item) => item.fule === 0)) {
-            this.powerOff();
-            document.getElementsByTagName("button")[1].disabled = true;
-            document.getElementsByTagName("button")[2].disabled = false;
-
-            alert("the agents can not move all balls into holes");
-            return;
-          }
+        } else if (!!dicision) {
           if (this.fule === 0) {
             this.powerOff();
+
+            if (AGENTS.every((item) => item.fule === 0)) {
+              document.getElementsByTagName("button")[1].disabled = true;
+              document.getElementsByTagName("button")[2].disabled = false;
+              const winner = TEAMS.sort((a, b) => b.score - a.score)[0];
+              if (!isGameAlert) {
+                isGameAlert = true;
+                alert("the game is over", winner.id + " winnnn");
+              }
+              return;
+            }
+
             return;
           }
           if (this.direction !== dicision) {
             this.turn(dicision);
           }
           this.goForward();
-          this.fule = this.fule - 1;
         }
         action();
       }, 800);
@@ -345,9 +407,15 @@ class Agent extends Element {
     element.style.borderRadius = "4px";
     element.style.clipPath = "polygon(0% 100%, 50% 0%, 100% 100%)";
     element.style.border = 0;
-    element.style.backgroundColor = "blue";
+    element.style.display = "flex";
+    element.style.alignItems = "flex-end";
+    element.style.justifyContent = "center";
+    element.style.color = "#fff";
+    element.style.backgroundColor = this.teamInfo.teamColor;
     element.style.transition =
       "top 500ms linear, left 500ms linear, transform 100ms linear";
+
+    element.innerText = this.fule;
 
     this.currentElement = element;
 

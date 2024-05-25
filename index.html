@@ -16,17 +16,29 @@
     <main class="main">
       <div class="game">
         <div>
-          <!-- <div class="game-fule">
-            <p>remaining fule:</p>
-            <p id="fule">30</p>
-          </div> -->
+          <div class="game-fule">
+            <div>
+            <p>team blue score:</p>
+            <p id="team_blue">0</p>
+          </div>
+          <div>
+            <p>team red score:</p>
+            <p id="team_red">0</p>
+          </div>
+          </div>
           <form>
             <label for="ffule">start fule:</label><br />
-            <input type="number" name="bsize" value="30" /><br /><br />
+            <input type="number" name="bsize" value="40" /><br /><br />
             <label for="fsize">size:</label><br />
             <input type="number" name="bsize" value="7" /><br /><br />
             <label for="bcount">balls count:</label><br />
             <input type="number" name="bcount" value="5" /><br /><br />
+
+            <label for="tp1count">team blue player counts:</label><br />
+            <input type="number" name="tp1count" value="1" /><br /><br />
+
+            <label for="tp2count">team red player counts:</label><br />
+            <input type="number" name="tp2count" value="1" /><br /><br />
           </form>
           <button onclick="readyGame()">make ready</button>
           <button disabled onclick="runGame()">start</button>
