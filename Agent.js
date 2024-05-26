@@ -4,7 +4,6 @@ class Agent extends Element {
   pickedElement = null;
   currentLocation = [-1, -1];
   unSuccessfullAttemptCount = 0;
-
   name = "";
   teamInfo = ""; // team info object
 
@@ -14,7 +13,6 @@ class Agent extends Element {
     this.fule = fule;
     this.teamInfo = teamInfo;
     this.name = Math.random().toString();
-    // document.getElementById("fule").innerText = this.fule;
   }
 
   searchAround() {
@@ -46,7 +44,6 @@ class Agent extends Element {
 
     return { closeBalls: closeBalls, closeHolls: closeHolls };
   }
-
   updateMemory(closeBalls, closeHolls) {
     const closeBallsLocations = closeBalls.map((item) => item.rowCol.join(","));
     const closeHolesLocations = closeHolls.map((item) => item.rowCol.join(","));
@@ -88,7 +85,6 @@ class Agent extends Element {
       }
     });
   }
-
   chooseGoal(closeBalls, closeHolls) {
     let goalElement = null;
     let goalLocation = null;
@@ -209,12 +205,10 @@ class Agent extends Element {
 
     return { goalLocation: goalLocation, goalElement: goalElement };
   }
-
   updateGoalLocationInMemory(goalLocation) {
     this.teamInfo.agentsGoalLocation[this.name] =
       goalLocation[0] + "," + goalLocation[1];
   }
-
   makeDecision(goalLocation) {
     if (goalLocation[0] === this.row && goalLocation[1] === this.column) {
       if (this.pickedElement === null) {
@@ -259,14 +253,12 @@ class Agent extends Element {
       return "";
     }
   }
-
   pickUp(goalElement) {
     if (!goalElement.isPicked && !goalElement.isArrived) {
       this.pickedElement = goalElement;
       goalElement.isPicked = true;
     }
   }
-
   putDown(goalElement) {
     if (goalElement.isFill) {
       const ball = goalElement.FilledBallObject;
@@ -286,7 +278,6 @@ class Agent extends Element {
 
     TEAMS.map((team) => team.scoreCalculator());
   }
-
   turn(direction) {
     if (direction === DISISIONS.top) {
       this.currentElement.style.transform = "rotate(0deg)";
@@ -303,7 +294,6 @@ class Agent extends Element {
 
     this.direction = direction;
   }
-
   goForward() {
     const cellSize = BOARD_SIZE_PX / BOARD_SIZE_CELL;
     const postionFromTop = Number(this.currentElement.style.top.slice(0, -2));
@@ -331,7 +321,6 @@ class Agent extends Element {
     this.fule = this.fule - 1;
     this.currentElement.innerText = this.fule;
   }
-
   start() {
     const action = () => {
       agentTimeOut = setTimeout(() => {
@@ -376,9 +365,7 @@ class Agent extends Element {
                 isGameAlert = true;
                 alert("the game is over", winner.id + " winnnn");
               }
-              return;
             }
-
             return;
           }
           if (this.direction !== dicision) {
@@ -391,7 +378,6 @@ class Agent extends Element {
     };
     action();
   }
-
   powerOff() {
     if (this.pickedElement) {
       this.pickedElement.isPicked = false;
@@ -400,7 +386,6 @@ class Agent extends Element {
     }
     this.currentElement.style.backgroundColor = "gray";
   }
-
   generateElement() {
     const element = this.getElement();
 
