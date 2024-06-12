@@ -327,10 +327,16 @@ class Agent extends Element {
         manageLogs();
 
         if (BALLS.filter((item) => !item.isArrived).length === 0) {
-          const winner = TEAMS.sort((a, b) => b.score - a.score)[0];
+          const teamsSortByScore = TEAMS.sort((a, b) => b.score - a.score);
+          const winner = teamsSortByScore[0];
+          const losser = teamsSortByScore[1];
           if (!isGameAlert) {
             isGameAlert = true;
-            alert(winner.id + " is winnnn");
+            const text =
+              winner.score > losser.score
+                ? winner.id + " wins the game"
+                : "The game equalised";
+            alert("The game is over, " + text);
           }
           document.getElementsByTagName("button")[1].disabled = true;
           document.getElementsByTagName("button")[2].disabled = false;
@@ -342,7 +348,7 @@ class Agent extends Element {
           closeItems.closeBalls,
           closeItems.closeHolls
         );
-        
+
         this.updateGoalLocationInMemory(goal.goalLocation);
         const dicision = this.makeDecision(goal.goalLocation);
 
@@ -360,10 +366,16 @@ class Agent extends Element {
             if (AGENTS.every((item) => item.fule === 0)) {
               document.getElementsByTagName("button")[1].disabled = true;
               document.getElementsByTagName("button")[2].disabled = false;
-              const winner = TEAMS.sort((a, b) => b.score - a.score)[0];
+              const teamsSortByScore = TEAMS.sort((a, b) => b.score - a.score);
+              const winner = teamsSortByScore[0];
+              const losser = teamsSortByScore[1];
               if (!isGameAlert) {
                 isGameAlert = true;
-                alert("the game is over", winner.id + " winnnn");
+                const text =
+                  winner.score > losser.score
+                    ? winner.id + " wins the game"
+                    : "The game equalised";
+                alert("The game is over, " + text);
               }
             }
             return;
