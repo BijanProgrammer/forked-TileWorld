@@ -26,7 +26,7 @@ button {
   cursor: pointer;
 }
 
-button:disabled{
+button:disabled {
   background-color: #858585;
 }
 
@@ -46,12 +46,8 @@ input {
 
   padding: 50px;
 
-  min-width: calc(
-    var(--board-game-width) + 2 * var(--board-game-parent-padding)
-  );
-  min-height: calc(
-    var(--board-game-height) + 2 * var(--board-game-parent-padding)
-  );
+  min-width: calc(var(--board-game-width) + 2 * var(--board-game-parent-padding));
+  min-height: calc(var(--board-game-height) + 2 * var(--board-game-parent-padding));
 
   display: flex;
   flex-direction: column;
@@ -72,19 +68,19 @@ input {
   padding: 10px;
 }
 
-.game-fule{
+.game-fule {
   display: flex;
   flex-direction: column;
   gap: 10px;
   margin-bottom: 20px;
 }
 
-.game-fule > div{
+.game-fule > div {
   display: flex;
   gap: 5px;
 }
 
-.game-fule > div > p{
+.game-fule > div > p {
   color: #4caf50;
   font-size: 24px;
 }
