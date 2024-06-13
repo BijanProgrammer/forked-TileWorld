@@ -1,0 +1,104 @@
+:root {
+  --board-game-width: 1020px;
+  --board-game-height: 800px;
+
+  --board-game-parent-padding: 20px;
+}
+* {
+  padding: 0;
+  margin: 0;
+
+  box-sizing: border-box;
+}
+
+body {
+  height: 100vh;
+  width: 100vw;
+}
+
+button {
+  background-color: #4caf50;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:disabled{
+  background-color: #858585;
+}
+
+input {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.main {
+  width: 100%;
+  height: 100%;
+
+  padding: 50px;
+
+  min-width: calc(
+    var(--board-game-width) + 2 * var(--board-game-parent-padding)
+  );
+  min-height: calc(
+    var(--board-game-height) + 2 * var(--board-game-parent-padding)
+  );
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.game {
+  width: var(--board-game-width);
+  height: var(--board-game-height);
+
+  border-radius: 16px;
+  border: 3px solid #cccccc;
+
+  display: flex;
+  gap: 10px;
+
+  padding: 10px;
+}
+
+.game-fule{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.game-fule > div{
+  display: flex;
+  gap: 5px;
+}
+
+.game-fule > div > p{
+  color: #4caf50;
+  font-size: 24px;
+}
+
+.game--board {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+
+  position: relative;
+
+  height: 100%;
+}
+.game--board > div {
+  border: 1px solid black;
+  box-sizing: border-box;
+}
